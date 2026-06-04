@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salat BD — Prayer Times Bangladesh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root {
+    --cream:      #FAF7F2;
+    --cream-deep: #F2EDE4;
+    --cream-card: #FFFFFF;
+    --gold:       #B8860B;
+    --gold-light: #D4A017;
+    --gold-pale:  #FFF8E7;
+    --teal:       #1A6B7C;
+    --teal-light: #EBF6F8;
+    --red-dark:   #8B1A1A;
+    --red-pale:   #FFF0F0;
+    --ink:        #1C1C1E;
+    --ink-mid:    #3C3C3E;
+    --ink-dim:    #6E6E73;
+    --ink-faint:  #AEAEB2;
+    --border:     rgba(0,0,0,0.08);
+    --shadow-sm:  0 1px 4px rgba(0,0,0,0.06), 0 2px 12px rgba(0,0,0,0.04);
+    --shadow-md:  0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05);
+    --shadow-lg:  0 8px 32px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
+    --radius:     16px;
+    --radius-sm:  10px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* ─── PATTERN BG ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(184,134,11,0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 90%, rgba(26,107,124,0.05) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23B8860B' fill-opacity='0.025'%3E%3Cpath d='M30 0 L35 10 L46 10 L37 17 L41 28 L30 22 L19 28 L23 17 L14 10 L25 10 Z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  /* ─── TYPOGRAPHY ─── */
+  .lora { font-family: 'Lora', serif; }
+  .amiri { font-family: 'Amiri', serif; }
+  .gold { color: var(--gold); }
+
+  h1,h2,h3 { font-family: 'Lora', serif; color: var(--ink); }
+
+  /* ─── CARD ─── */
+  .card {
+    background: var(--cream-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .card-elevated {
+    background: var(--cream-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: rgba(250,247,242,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(184,134,11,0.15);
+    position: sticky; top: 0; z-index: 40;
+  }
+
+  /* ─── PRAYER CARD ─── */
+  .prayer-card {
+    background: var(--cream-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s cubic-bezier(0.23,1,0.32,1);
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .prayer-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .prayer-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(184,134,11,0.3);
+  }
+
+  .prayer-card:hover::after { opacity: 1; }
+
+  .prayer-card.active-prayer {
+    border-color: var(--gold-light) !important;
+    background: var(--gold-pale) !important;
+    box-shadow: 0 0 0 4px rgba(212,160,23,0.12), var(--shadow-md);
+  }
+  .prayer-card.active-prayer::after { opacity: 1; }
+
+  /* ─── NEXT BADGE ─── */
+  .badge-next {
+    background: var(--teal-light);
+    color: var(--teal);
+    border: 1px solid rgba(26,107,124,0.25);
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  .badge-current {
+    background: var(--gold-pale);
+    color: var(--gold);
+    border: 1px solid rgba(184,134,11,0.3);
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+
+  /* ─── PULSE DOT ─── */
+  .pulse-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 0 0 rgba(26,107,124,0.5);
+    animation: pulse-ring 2.5s ease-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 rgba(26,107,124,0.5); }
+    70%  { box-shadow: 0 0 0 10px rgba(26,107,124,0); }
+    100% { box-shadow: 0 0 0 0 rgba(26,107,124,0); }
+  }
+
+  /* ─── COUNTDOWN ─── */
+  .countdown-block {
+    text-align: center;
+    min-width: 52px;
+  }
+  .countdown-digit {
+    font-family: 'Lora', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    display: block;
+  }
+  .countdown-sep {
+    font-family: 'Lora', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+  .countdown-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-track {
+    height: 6px;
+    background: var(--cream-deep);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--teal), var(--gold));
+    transition: width 1s linear;
+  }
+
+  /* ─── CITY BUTTON ─── */
+  .city-btn {
+    background: var(--cream-deep);
+    border: 1.5px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink-mid);
+    font-family: 'Source Sans 3', sans-serif;
+    transition: all 0.2s;
+  }
+  .city-btn:hover {
+    background: var(--teal-light);
+    border-color: rgba(26,107,124,0.3);
+    color: var(--teal);
+  }
+  .city-btn.active {
+    background: var(--gold-pale);
+    border-color: var(--gold-light);
+    color: var(--gold);
+  }
+
+  /* ─── TOGGLE ─── */
+  .toggle { position:relative; width:44px; height:26px; flex-shrink:0; }
+  .toggle input { opacity:0; width:0; height:0; position:absolute; }
+  .toggle-slider {
+    position:absolute; inset:0; cursor:pointer;
+    background: var(--cream-deep);
+    border: 1.5px solid var(--border);
+    border-radius: 99px;
+    transition: 0.3s;
+  }
+  .toggle-slider::before {
+    content:''; position:absolute;
+    width:18px; height:18px; border-radius:50%;
+    background: var(--ink-faint);
+    top: 2px; left: 2px;
+    transition: 0.3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle input:checked + .toggle-slider { background: var(--teal); border-color: var(--teal); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); background: white; }
+
+  /* ─── HIJRI BADGE ─── */
+  .hijri-badge {
+    background: var(--gold-pale);
+    border: 1px solid rgba(184,134,11,0.2);
+    border-radius: 99px;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+  }
+
+  /* ─── TABS ─── */
+  .tab-bar {
+    background: var(--cream-deep);
+    border-radius: var(--radius);
+    padding: 4px;
+    display: inline-flex;
+    gap: 2px;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: 'Source Sans 3', sans-serif;
+    color: var(--ink-dim);
+    cursor: pointer;
+    transition: all 0.25s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--ink); background: rgba(255,255,255,0.6); }
+  .tab-btn.active {
+    background: white;
+    color: var(--gold);
+    box-shadow: var(--shadow-sm);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ─── PROHIBITED TIMES ─── */
+  .prohibited-section {
+    background: #FFF8F8;
+    border: 1.5px solid rgba(139,26,26,0.15);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .prohibited-header {
+    background: linear-gradient(135deg, rgba(139,26,26,0.06), rgba(139,26,26,0.02));
+    border-bottom: 1px solid rgba(139,26,26,0.1);
+    padding: 18px 22px;
+  }
+  .prohibited-card {
+    border: 1.5px solid rgba(139,26,26,0.12);
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .prohibited-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px;
+    height: 100%;
+    background: rgba(139,26,26,0.25);
+    border-radius: 4px 0 0 4px;
+  }
+  .prohibited-card.active-prohibited {
+    border-color: rgba(139,26,26,0.5) !important;
+    background: var(--red-pale) !important;
+    box-shadow: 0 0 0 3px rgba(139,26,26,0.08);
+  }
+  .prohibited-card.active-prohibited::before {
+    background: var(--red-dark);
+  }
+  .badge-forbidden {
+    background: rgba(139,26,26,0.08);
+    border: 1px solid rgba(139,26,26,0.2);
+    color: var(--red-dark);
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .badge-now {
+    background: var(--red-dark);
+    color: white;
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    animation: pulse-red 2s ease infinite;
+  }
+  @keyframes pulse-red {
+    0%,100% { box-shadow: 0 0 0 0 rgba(139,26,26,0.3); }
+    50%      { box-shadow: 0 0 0 5px rgba(139,26,26,0); }
+  }
+
+  /* madhab tabs */
+  .madhab-tab-bar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .madhab-btn {
+    background: var(--cream-deep);
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: 'Source Sans 3', sans-serif;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .madhab-btn:hover { border-color: rgba(139,26,26,0.2); color: var(--red-dark); }
+  .madhab-btn.active {
+    background: rgba(139,26,26,0.06);
+    border-color: rgba(139,26,26,0.3);
+    color: var(--red-dark);
+  }
+
+  /* ─── ADHAN BTN ─── */
+  .adhan-btn {
+    background: var(--cream-deep);
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    color: var(--ink-mid);
+    flex-shrink: 0;
+  }
+  .adhan-btn:hover { background: var(--teal-light); color: var(--teal); border-color: rgba(26,107,124,0.3); }
+  .adhan-btn.muted { opacity: 0.4; }
+
+  /* ─── STATS CARD ─── */
+  .stat-card {
+    background: var(--cream-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    padding: 16px;
+    text-align: center;
+  }
+
+  /* ─── COMPASS ─── */
+  .compass-ring {
+    border: 2px solid rgba(184,134,11,0.3);
+    border-radius: 50%;
+    background: radial-gradient(circle, white, var(--cream));
+    box-shadow: var(--shadow-md), inset 0 0 30px rgba(184,134,11,0.04);
+    position: relative;
+  }
+
+  /* ─── NOTIFICATION ─── */
+  .notif-banner {
+    background: var(--teal-light);
+    border: 1px solid rgba(26,107,124,0.25);
+    border-radius: var(--radius-sm);
+    animation: slideDown 0.4s ease;
+  }
+  @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ─── MOBILE NAV ─── */
+  .mob-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    background: rgba(250,247,242,0.96);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(184,134,11,0.12);
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    display: none;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+  }
+  @media (max-width: 768px) { .mob-nav { display: flex; } }
+
+  .mob-nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: none; cursor: pointer;
+    color: var(--ink-dim);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-family: 'Source Sans 3', sans-serif;
+    padding: 6px 4px;
+    border-radius: 10px;
+    transition: all 0.2s;
+  }
+  .mob-nav-btn.active, .mob-nav-btn:hover { color: var(--gold); }
+
+  /* ─── WEEKLY TABLE ─── */
+  .weekly-row { border-bottom: 1px solid var(--cream-deep); }
+  .weekly-row:last-child { border-bottom: none; }
+  .weekly-row.selected { background: var(--gold-pale); }
+
+  /* ─── DATE INPUT ─── */
+  input[type="date"] {
+    background: var(--cream-deep);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    color: var(--ink);
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  input[type="date"]:focus { border-color: rgba(184,134,11,0.4); }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--cream-deep); }
+  ::-webkit-scrollbar-thumb { background: rgba(184,134,11,0.25); border-radius: 5px; }
+
+  /* ─── FADE IN ─── */
+  .fade-up { opacity: 0; transform: translateY(20px); }
+
+  /* ─── FOCUS VISIBLE ─── */
+  :focus-visible {
+    outline: 3px solid rgba(184,134,11,0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ─── ACCESSIBLE FONT SIZES ─── */
+  .text-prayer-time {
+    font-size: clamp(1.35rem, 3vw, 1.7rem);
+    font-family: 'Lora', serif;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .text-prayer-name {
+    font-size: 1.05rem;
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ─── QIBLA GRID ITEM ─── */
+  .qibla-city-card {
+    background: var(--cream-deep);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .qibla-city-card:hover {
+    background: var(--gold-pale);
+    border-color: rgba(184,134,11,0.3);
+  }
+  .qibla-city-card.active {
+    background: var(--gold-pale);
+    border-color: var(--gold-light);
+  }
+
+  /* ─── SECTION HEADER RULE ─── */
+  .section-rule {
+    width: 40px; height: 3px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    border-radius: 99px;
+    margin-bottom: 4px;
+  }
+
+  @media (max-width: 640px) {
+    .tab-btn { padding: 9px 13px; font-size: 0.82rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <!-- Crescent SVG -->
+      <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true">
+        <defs>
+          <linearGradient id="moonG" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#D4A017"/>
+            <stop offset="100%" style="stop-color:#8B6A00"/>
+          </linearGradient>
+        </defs>
+        <circle cx="19" cy="19" r="15" fill="url(#moonG)" opacity="0.9"/>
+        <circle cx="24" cy="15" r="11" fill="var(--cream)"/>
+        <circle cx="27" cy="11" r="3.5" fill="url(#moonG)" opacity="0.7"/>
+        <circle cx="23" cy="8" r="2" fill="url(#moonG)" opacity="0.5"/>
+      </svg>
+      <div>
+        <h1 class="lora text-lg font-bold leading-none" style="color:var(--gold)">Salat BD</h1>
+        <p class="text-xs font-semibold tracking-widest uppercase" style="color:var(--ink-dim)">Bangladesh Prayer Times</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="hijri-badge hidden sm:block">
+        <span class="amiri text-sm" style="color:var(--gold)" id="hijriDate">—</span>
+      </div>
+      <div class="flex items-center gap-2 hidden sm:flex">
+        <label class="toggle" aria-label="Enable prayer alerts">
+          <input type="checkbox" id="notifToggle" checked>
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="text-sm font-600" style="color:var(--ink-dim)">Alerts</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── MAIN ── -->
+<div class="relative z-10 min-h-screen pb-24 md:pb-8 pt-4">
+<div class="max-w-5xl mx-auto px-4 sm:px-6">
+
+  <!-- ── CITY SELECTOR ── -->
+  <div class="fade-up mb-5">
+    <div class="card p-4 sm:p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span class="text-sm font-700 uppercase tracking-widest" style="color:var(--ink-dim)">Select Your City</span>
+      </div>
+      <div class="flex flex-wrap gap-2" id="cityGrid" role="group" aria-label="Select city"></div>
+    </div>
+  </div>
+
+  <!-- ── DATE PICKER ── -->
+  <div class="fade-up mb-5">
+    <div class="card p-4 sm:p-5">
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span class="text-sm font-700 uppercase tracking-widest" style="color:var(--ink-dim)">View Date</span>
+        </div>
+        <input type="date" id="datePicker" aria-label="Select date" onchange="onDateChange(this.value)" />
+        <button onclick="resetToToday()"
+          style="background:var(--gold-pale);border:1.5px solid rgba(184,134,11,0.3);border-radius:var(--radius-sm);padding:7px 16px;color:var(--gold);font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Source Sans 3',sans-serif;transition:all 0.2s;"
+          onmouseover="this.style.background='rgba(212,160,23,0.15)'" onmouseout="this.style.background='var(--gold-pale)'">
+          Today
+        </button>
+        <span id="viewingLabel" class="text-sm italic" style="color:var(--ink-dim)"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HERO: DATE + COUNTDOWN ── -->
+  <div class="fade-up mb-5">
+    <div class="card-elevated p-5 sm:p-8 relative overflow-hidden">
+      <!-- Decorative star -->
+      <div class="absolute top-0 right-0 w-36 h-36 opacity-[0.04] pointer-events-none" aria-hidden="true">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35" fill="var(--gold)"/>
+        </svg>
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <!-- Date block -->
+        <div>
+          <div class="amiri text-5xl sm:text-6xl font-bold leading-none mb-1" style="color:var(--gold)" id="arabicDay">الجمعة</div>
+          <div class="lora text-xl sm:text-2xl font-semibold" style="color:var(--ink)" id="engDate">Loading…</div>
+          <div class="hijri-badge inline-block mt-3 sm:hidden">
+            <span class="amiri text-sm" style="color:var(--gold)" id="hijriDateMob">—</span>
+          </div>
+        </div>
+
+        <!-- Countdown -->
+        <div>
+          <p class="text-xs font-700 uppercase tracking-widest mb-2" style="color:var(--ink-dim)">Next Prayer</p>
+          <div class="flex items-center gap-2 mb-3" id="nextPrayerName">
+            <div class="pulse-dot"></div>
+            <span class="lora text-lg font-bold" style="color:var(--teal)" id="nextPrayerLabel">—</span>
+          </div>
+          <div class="flex items-center gap-2" role="timer" aria-label="Time remaining until next prayer">
+            <div class="countdown-block">
+              <span class="countdown-digit" id="cdH">00</span>
+              <div class="countdown-label">hrs</div>
+            </div>
+            <span class="countdown-sep">:</span>
+            <div class="countdown-block">
+              <span class="countdown-digit" id="cdM">00</span>
+              <div class="countdown-label">min</div>
+            </div>
+            <span class="countdown-sep">:</span>
+            <div class="countdown-block">
+              <span class="countdown-digit" id="cdS">00</span>
+              <div class="countdown-label">sec</div>
+            </div>
+          </div>
+          <!-- Day progress -->
+          <div class="mt-4 w-full sm:w-52">
+            <div class="flex justify-between text-xs font-600 mb-1" style="color:var(--ink-dim)">
+              <span>Fajr</span><span>Isha</span>
+            </div>
+            <div class="progress-track" role="progressbar" aria-label="Day progress">
+              <div class="progress-fill" id="dayProgress" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB NAV (desktop) ── -->
+  <div class="fade-up mb-5 hidden md:flex">
+    <div class="tab-bar" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="prayers" onclick="switchTab('prayers',this)">
+        ☽ Prayer Times
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="qibla" onclick="switchTab('qibla',this)">
+        ◈ Qibla
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="calendar" onclick="switchTab('calendar',this)">
+        ◇ Weekly
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════
+       TAB: PRAYERS
+  ══════════════════ -->
+  <div id="tab-prayers" class="tab-content active" role="tabpanel">
+
+    <!-- Notification Banner -->
+    <div class="notif-banner p-3 mb-4 flex items-center gap-3 hidden" id="notifBanner" role="alert" aria-live="polite">
+      <span class="text-xl" aria-hidden="true">🕌</span>
+      <span class="text-sm font-600" id="notifText">Prayer time alert</span>
+      <button onclick="this.parentElement.classList.add('hidden')" class="ml-auto text-lg leading-none" style="color:var(--ink-dim)" aria-label="Close notification">×</button>
+    </div>
+
+    <!-- Prayer Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-5" id="prayerGrid" role="list" aria-label="Prayer times"></div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div class="stat-card">
+        <div class="text-xs font-700 uppercase tracking-widest mb-1" style="color:var(--ink-dim)">Sunrise</div>
+        <div class="lora text-lg font-bold" style="color:var(--teal)" id="statSunrise">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-xs font-700 uppercase tracking-widest mb-1" style="color:var(--ink-dim)">Sunset</div>
+        <div class="lora text-lg font-bold" style="color:var(--teal)" id="statSunset">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-xs font-700 uppercase tracking-widest mb-1" style="color:var(--ink-dim)">Day Length</div>
+        <div class="lora text-lg font-bold" style="color:var(--teal)" id="statDayLength">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-xs font-700 uppercase tracking-widest mb-1" style="color:var(--ink-dim)">Method</div>
+        <div class="text-sm font-600" style="color:var(--ink-mid)">Hanafi · Karachi</div>
+      </div>
+    </div>
+
+    <!-- ── PROHIBITED TIMES ── -->
+    <div class="prohibited-section mb-2" aria-label="Prohibited times for prayer">
+      <div class="prohibited-header">
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
+          <div>
+            <div class="section-rule"></div>
+            <h3 class="lora text-lg font-bold" style="color:var(--red-dark)">🚫 Prohibited Times for Salat</h3>
+            <p class="text-sm mt-1" style="color:var(--ink-mid)">
+              Based on <strong>Sahih Muslim 831</strong> — three times when prayer is not permitted
+            </p>
+          </div>
+          <!-- Madhab selector -->
+          <div>
+            <p class="text-xs font-700 uppercase tracking-widest mb-2" style="color:var(--ink-dim)">View by Madhab</p>
+            <div class="madhab-tab-bar" role="group" aria-label="Select madhab">
+              <button class="madhab-btn active" onclick="switchMadhab('hanafi',this)">Hanafi</button>
+              <button class="madhab-btn" onclick="switchMadhab('shafi',this)">Shāfiʿī</button>
+              <button class="madhab-btn" onclick="switchMadhab('maliki',this)">Mālikī</button>
+              <button class="madhab-btn" onclick="switchMadhab('hanbali',this)">Ḥanbalī</button>
+            </div>
+          </div>
+        </div>
+        <!-- Hadith reference block -->
+        <div style="background:rgba(139,26,26,0.05);border:1px solid rgba(139,26,26,0.1);border-radius:10px;padding:12px 14px;margin-top:8px;">
+          <p class="amiri text-base mb-1" style="color:var(--red-dark);direction:rtl;text-align:right;">
+            «نَهَى النَّبِيُّ ﷺ عَنِ الصَّلَاةِ فِي ثَلَاثِ سَاعَاتٍ»
+          </p>
+          <p class="text-xs" style="color:var(--ink-dim)">
+            The Prophet ﷺ prohibited prayer at three times: at sunrise, at solar noon (istiwa'), and at sunset. — <em>Sahih Muslim 831</em>, <em>Abu Dawud 3192</em>
+          </p>
+        </div>
+      </div>
+
+      <!-- Madhab note (changes dynamically) -->
+      <div id="madhabNote" style="padding:10px 22px;background:rgba(184,134,11,0.05);border-bottom:1px solid rgba(0,0,0,0.05);">
+        <p class="text-xs" style="color:var(--ink-dim)" id="madhabNoteText">
+          <strong style="color:var(--gold)">Ḥanafī:</strong> All voluntary (nafl) and makeup (qaḍā) prayers are strictly prohibited. Fard prayers with a cause (janāzah, sajdah tilāwah) are <em>permitted</em> except at istiwa'. Makrūh Taḥrīmān.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4" id="prohibitedGrid"></div>
+    </div>
+
+  </div><!-- /tab-prayers -->
+
+  <!-- ══════════════════
+       TAB: QIBLA
+  ══════════════════ -->
+  <div id="tab-qibla" class="tab-content" role="tabpanel">
+    <div class="card p-6 sm:p-10 text-center">
+      <div class="section-rule mx-auto mb-1" style="margin:0 auto 4px;"></div>
+      <h2 class="lora text-2xl font-bold mb-1" style="color:var(--ink)">Qibla Direction</h2>
+      <p class="text-sm mb-8" style="color:var(--ink-dim)">Great circle bearing toward the Kaaba in Mecca</p>
+
+      <!-- Compass -->
+      <div class="flex justify-center mb-8">
+        <div class="compass-ring w-60 h-60 sm:w-72 sm:h-72 flex items-center justify-center" id="compassRing" style="position:relative;" aria-label="Qibla compass">
+          <span class="lora text-sm font-bold absolute" style="top:8px;left:50%;transform:translateX(-50%);color:var(--gold)">N</span>
+          <span class="lora text-sm font-bold absolute" style="bottom:8px;left:50%;transform:translateX(-50%);color:var(--ink-faint)">S</span>
+          <span class="lora text-sm font-bold absolute" style="left:8px;top:50%;transform:translateY(-50%);color:var(--ink-faint)">W</span>
+          <span class="lora text-sm font-bold absolute" style="right:8px;top:50%;transform:translateY(-50%);color:var(--ink-faint)">E</span>
+          <div style="width:82%;height:82%;border-radius:50%;border:1px solid rgba(184,134,11,0.15);display:flex;align-items:center;justify-content:center;position:relative;">
+            <div id="qiblaNeedle" style="position:absolute;top:50%;left:50%;width:4px;height:46%;transform-origin:bottom center;transform:translate(-50%,-100%);">
+              <div style="width:4px;height:100%;background:linear-gradient(to top, rgba(184,134,11,0.2), var(--gold));border-radius:4px 4px 0 0;"></div>
+              <div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--gold);border:2px solid white;box-shadow:0 2px 8px rgba(184,134,11,0.4);"></div>
+              <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:20px;" aria-hidden="true">🕋</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-elevated inline-block px-8 py-4 mb-8">
+        <div class="text-xs font-700 uppercase tracking-widest mb-1" style="color:var(--ink-dim)">Qibla Angle</div>
+        <div class="lora text-4xl font-bold" style="color:var(--gold)" id="qiblaAngle">—°</div>
+        <div class="text-sm mt-1" style="color:var(--ink-dim)" id="qiblaCity">from selected city</div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="qiblaGrid"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════
+       TAB: WEEKLY
+  ══════════════════ -->
+  <div id="tab-calendar" class="tab-content" role="tabpanel">
+    <div class="card p-5 sm:p-8">
+      <div class="section-rule mb-1"></div>
+      <h2 class="lora text-2xl font-bold mb-1" style="color:var(--ink)">Weekly Schedule</h2>
+      <p class="text-sm mb-6" style="color:var(--ink-dim)">Prayer times for 7 days from selected date</p>
+      <div class="overflow-x-auto">
+        <table class="w-full" id="weeklyTable" aria-label="Weekly prayer schedule">
+          <thead>
+            <tr style="border-bottom:2px solid var(--cream-deep);">
+              <th class="text-left py-3 pr-4 text-xs font-700 uppercase tracking-widest" style="color:var(--ink-dim)">Day</th>
+              <th class="py-3 px-3 text-xs font-700 uppercase tracking-widest" style="color:var(--ink-dim)">Fajr</th>
+              <th class="py-3 px-3 text-xs font-700 uppercase tracking-widest" style="color:var(--ink-dim)">Dhuhr</th>
+              <th class="py-3 px-3 text-xs font-700 uppercase tracking-widest" style="color:var(--ink-dim)">Asr</th>
+              <th class="py-3 px-3 text-xs font-700 uppercase tracking-widest" style="color:var(--ink-dim)">Maghrib</th>
+              <th class="py-3 px-3 text-xs font-700 uppercase tracking-widest" style="color:var(--ink-dim)">Isha</th>
+            </tr>
+          </thead>
+          <tbody id="weeklyBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /max-w -->
+</div><!-- /main -->
+
+<!-- ── MOBILE NAV ── -->
+<nav class="mob-nav" aria-label="Main navigation">
+  <button class="mob-nav-btn active" onclick="switchTabMob('prayers',this)" aria-label="Prayer times">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 20h20M4 20V8l8-6 8 6v12"/><path d="M10 20v-5h4v5"/></svg>
+    Prayers
+  </button>
+  <button class="mob-nav-btn" onclick="switchTabMob('qibla',this)" aria-label="Qibla direction">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+    Qibla
+  </button>
+  <button class="mob-nav-btn" onclick="switchTabMob('calendar',this)" aria-label="Weekly schedule">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Weekly
+  </button>
+</nav>
+
+<!-- ════════════════════
+     JAVASCRIPT
+════════════════════ -->
+<script>
+// ─── DATA ───
+const CITIES = [
+  { name:'Dhaka',      lat:23.8103, lon:90.4125, qibla:277.5 },
+  { name:'Chittagong', lat:22.3569, lon:91.7832, qibla:276.8 },
+  { name:'Sylhet',     lat:24.8949, lon:91.8687, qibla:278.1 },
+  { name:'Rajshahi',   lat:24.3745, lon:88.6042, qibla:279.2 },
+  { name:'Khulna',     lat:22.8456, lon:89.5403, qibla:277.9 },
+  { name:'Barishal',   lat:22.7010, lon:90.3535, qibla:277.6 },
+  { name:'Comilla',    lat:23.4607, lon:91.1809, qibla:277.3 },
+  { name:'Mymensingh', lat:24.7471, lon:90.4203, qibla:278.0 },
+  { name:'Rangpur',    lat:25.7439, lon:89.2752, qibla:279.5 },
+  { name:'Ishwardi',   lat:24.1264, lon:89.0665, qibla:279.3 },
+  { name:'Gazipur',    lat:23.9999, lon:90.4203, qibla:277.6 },
+];
+
+const PRAYER_META = [
+  { key:'Fajr',    icon:'🌙', arabic:'الفجر',  desc:'Pre-dawn prayer' },
+  { key:'Sunrise', icon:'🌅', arabic:'الشروق', desc:'Sunrise (not a prayer)', info:true },
+  { key:'Dhuhr',   icon:'☀️', arabic:'الظهر',  desc:'Midday prayer' },
+  { key:'Asr',     icon:'🌤', arabic:'العصر',  desc:'Afternoon prayer' },
+  { key:'Maghrib', icon:'🌆', arabic:'المغرب', desc:'Sunset prayer' },
+  { key:'Isha',    icon:'🌃', arabic:'العشاء', desc:'Night prayer' },
+];
+
+const ARABIC_DAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+
+// ─── MADHAB DATA (accurate per fiqh) ───
+const MADHAB_DATA = {
+  hanafi: {
+    note: '<strong style="color:var(--gold)">Ḥanafī:</strong> All voluntary (nafl) and makeup (qaḍā) prayers strictly prohibited. Fard with a cause (janāzah, sajdah) permitted except at istiwa\'. Category: <em>Makrūh Taḥrīmān</em>.',
+    windows: [
+      { windowBefore: 0, windowAfter: 20, label:'Sunrise', name:'At Sunrise (Shurūq)', arabic:'عند الشروق', icon:'🌅', desc:'From when sun begins to rise until it clears the horizon and turns white (~20 min). Hadith: "Do not pray at sunrise or sunset." — Sahih Muslim 831.' },
+      { windowBefore: 10, windowAfter: 0, label:'Dhuhr',   name:'Solar Noon (Istiwa\')', arabic:'عند الاستواء', icon:'☀️', desc:'~10 min before Dhuhr when sun is at zenith. Makrūh Taḥrīmān for ALL prayers including fard. Ends when Dhuhr time begins. — Abu Dawud 3192.' },
+      { windowBefore: 15, windowAfter: 0, label:'Maghrib', name:'Before Sunset (Ghurūb)', arabic:'عند الغروب', icon:'🌇', desc:'From ~15 min before sunset until sun sets. Asr fard already prayed is not affected. Nafl & qaḍā prohibited. — Sahih Muslim 831.' },
+    ]
+  },
+  shafi: {
+    note: '<strong style="color:var(--gold)">Shāfiʿī:</strong> Three times prohibited. Importantly, <em>Asr fard of the day</em> may be prayed at sunset if not yet performed. Nafl is prohibited at all three times. Category: <em>Ḥarām</em> (per Nawawī).',
+    windows: [
+      { windowBefore: 0, windowAfter: 15, label:'Sunrise', name:'At Sunrise (Shurūq)', arabic:'عند الشروق', icon:'🌅', desc:'From beginning of sunrise until sun fully rises and turns white (~15 min). Based on Sahih Muslim 831 & Bukhari 585.' },
+      { windowBefore: 5, windowAfter: 0,  label:'Dhuhr',   name:'Solar Noon (Istiwa\')', arabic:'عند الاستواء', icon:'☀️', desc:'Exact moment sun is at zenith (~5 min). Shortest of the three windows. Applies to nafl; Shāfiʿī fard is debated but generally avoided. — Nawawī, Al-Majmūʿ.' },
+      { windowBefore: 15, windowAfter: 0, label:'Maghrib', name:'Before Sunset (Ghurūb)', arabic:'عند الغروب', icon:'🌇', desc:'~15 min before sunset. Exception: Asr fard of that day is permitted to be performed even here. Nafl strictly prohibited.' },
+    ]
+  },
+  maliki: {
+    note: '<strong style="color:var(--gold)">Mālikī:</strong> Two primary prohibited times (sunrise & sunset). Solar noon only <em>disliked</em> on non-Friday days. Fard prayers are generally NOT prohibited at any time — only nafl. Category: <em>Makrūh Tanzīhī</em> (less severe).',
+    windows: [
+      { windowBefore: 0, windowAfter: 15, label:'Sunrise', name:'At Sunrise (Shurūq)', arabic:'عند الشروق', icon:'🌅', desc:'From sunrise until sun rises a spear\'s length (~15 min). Applies to nafl prayers. Fard prayers with a cause are permitted per Mālikī fiqh. — Mukhtasar Khalīl.' },
+      { windowBefore: 10, windowAfter: 0, label:'Dhuhr',   name:'Solar Noon (Istiwa\')', arabic:'عند الاستواء', icon:'☀️', desc:'Disliked (makrūh tanzīhī) before Dhuhr on non-Friday days only. Friday (Jumu\'ah): permitted to pray nafl until adhan. Lighter prohibition than other madhabs.' },
+      { windowBefore: 15, windowAfter: 0, label:'Maghrib', name:'Before Sunset (Ghurūb)', arabic:'عند الغروب', icon:'🌇', desc:'From ~15 min before sunset. Asr fard must be prayed even if it falls here. Only nafl is disliked. — Ibn Rushd, Bidāyat al-Mujtahid.' },
+    ]
+  },
+  hanbali: {
+    note: '<strong style="color:var(--gold)">Ḥanbalī:</strong> Three prohibited times, strictly applied. Both nafl AND fard without a cause are prohibited. Fard with a cause (janāzah on the ground, making up missed prayer) is <em>permitted</em>. Category: <em>Ḥarām</em>.',
+    windows: [
+      { windowBefore: 0, windowAfter: 20, label:'Sunrise', name:'At Sunrise (Shurūq)', arabic:'عند الشروق', icon:'🌅', desc:'From when sun\'s disc appears until it fully rises and turns white (~20 min). Ḥanbalī is strictest here — even fard without cause is prohibited. — Ibn Qudāmah, Al-Mughnī.' },
+      { windowBefore: 10, windowAfter: 0, label:'Dhuhr',   name:'Solar Noon (Istiwa\')', arabic:'عند الاستواء', icon:'☀️', desc:'~10 min before Dhuhr. All prayers (fard & nafl) prohibited without a cause. Exception: Jumu\'ah day — permitted to pray nafl before Jumu\'ah salat.' },
+      { windowBefore: 20, windowAfter: 0, label:'Maghrib', name:'Before Sunset (Ghurūb)', arabic:'عند الغروب', icon:'🌇', desc:'From ~20 min before sunset (Ḥanbalī uses a wider window). All prayers without cause prohibited. Exception: if Asr was missed due to forgetfulness, pray immediately.' },
+    ]
+  }
+};
+
+let selectedCity   = CITIES.find(c=>c.name==='Ishwardi') || CITIES[0];
+let prayerTimes    = {};
+let nextPrayer     = null;
+let muteState      = {};
+let selectedDate   = new Date();
+let selectedMadhab = 'hanafi';
+
+// ─── CALC ENGINE ───
+const DEG = Math.PI/180, RAD = 180/Math.PI;
+
+function calcPrayerTimes(date, lat, lon){
+  const Y=date.getFullYear(), M=date.getMonth()+1, D=date.getDate();
+  const A=Math.floor((14-M)/12), y=Y+4800-A, m=M+12*A-3;
+  const JD=D+Math.floor((153*m+2)/5)+365*y+Math.floor(y/4)
+           -Math.floor(y/100)+Math.floor(y/400)-32045;
+  const n=JD-2451545.0, T=n/36525.0;
+  const L0=((280.46646+36000.76983*T)%360+360)%360;
+  const M0=((357.52911+35999.05029*T-0.0001537*T*T)%360+360)%360;
+  const Mr=M0*DEG;
+  const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(Mr)
+         +(0.019993-0.000101*T)*Math.sin(2*Mr)
+         +0.000289*Math.sin(3*Mr);
+  const sunLon=L0+C;
+  const appLon=sunLon-0.00569-0.00478*Math.sin((125.04-1934.136*T)*DEG);
+  const eps0=23.439291111-0.013004167*T-0.0000001639*T*T+0.0000005036*T*T*T;
+  const eps=(eps0+0.00256*Math.cos((125.04-1934.136*T)*DEG))*DEG;
+  const sinDec=Math.sin(eps)*Math.sin(appLon*DEG);
+  const dec=Math.asin(sinDec);
+  const RA_rad=Math.atan2(Math.cos(eps)*Math.sin(appLon*DEG),Math.cos(appLon*DEG));
+  const RA_h=(RA_rad*RAD/15+24)%24;
+  const EqT=(L0/15)-RA_h;
+  const solarNoonUTC=12-lon/15-EqT;
+
+  function hourAngle(altDeg){
+    const cosH=(Math.sin(altDeg*DEG)-Math.sin(lat*DEG)*sinDec)/(Math.cos(lat*DEG)*Math.cos(dec));
+    if(cosH<-1||cosH>1)return null;
+    return Math.acos(cosH)*RAD/15;
+  }
+
+  const asrAlt=Math.atan(1/(2+Math.tan(Math.abs(lat*DEG-dec))))*RAD;
+  const asrHA=hourAngle(asrAlt);
+  const fajrHA=hourAngle(-18), sunriseHA=hourAngle(-0.8333), ishaHA=hourAngle(-18);
+
+  return {
+    Fajr:    hrsToFmt(solarNoonUTC-(fajrHA??1.5)+6),
+    Sunrise: hrsToFmt(solarNoonUTC-(sunriseHA??0.1)+6),
+    Dhuhr:   hrsToFmt(solarNoonUTC+0.0333+6),
+    Asr:     hrsToFmt(solarNoonUTC+(asrHA??4)+6),
+    Maghrib: hrsToFmt(solarNoonUTC+(sunriseHA??0.1)+0.0333+6),
+    Isha:    hrsToFmt(solarNoonUTC+(ishaHA??1.5)+6),
+  };
+}
+
+function hrsToFmt(h){
+  h=((h%24)+24)%24;
+  const totalMin=Math.round(h*60), fH=Math.floor(totalMin/60)%24, fM=totalMin%60;
+  const ap=fH<12?'AM':'PM', h12=fH%12||12;
+  return `${h12}:${String(fM).padStart(2,'0')} ${ap}`;
+}
+
+function parseTime12(t){
+  const [time,ap]=t.split(' ');
+  let [h,m]=time.split(':').map(Number);
+  if(ap==='PM'&&h!==12)h+=12;
+  if(ap==='AM'&&h===12)h=0;
+  return h*60+m;
+}
+
+// ─── HIJRI ───
+function getHijri(date){
+  return new Intl.DateTimeFormat('en-u-ca-islamic',{day:'numeric',month:'long',year:'numeric'}).format(date);
+}
+
+// ─── DATE HELPERS ───
+function isToday(d){
+  const t=new Date();
+  return d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate();
+}
+function toDateInputVal(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function onDateChange(val){
+  if(!val){resetToToday();return;}
+  const[y,m,d]=val.split('-').map(Number);
+  selectedDate=new Date(y,m-1,d);
+  loadAll(); updateViewingLabel();
+}
+function resetToToday(){
+  selectedDate=new Date();
+  const dp=document.getElementById('datePicker');
+  if(dp)dp.value=toDateInputVal(selectedDate);
+  loadAll(); updateViewingLabel();
+}
+function updateViewingLabel(){
+  const el=document.getElementById('viewingLabel');
+  if(el)el.textContent=isToday(selectedDate)?'':
+    `Viewing ${selectedDate.toLocaleDateString('en-BD',{day:'numeric',month:'short',year:'numeric'})}`;
+}
+
+// ─── CITY GRID ───
+function buildCityGrid(){
+  document.getElementById('cityGrid').innerHTML=CITIES.map(c=>`
+    <button class="city-btn ${c.name===selectedCity.name?'active':''}"
+      onclick="selectCity('${c.name}')"
+      aria-pressed="${c.name===selectedCity.name?'true':'false'}">${c.name}</button>
+  `).join('');
+}
+function selectCity(name){
+  selectedCity=CITIES.find(c=>c.name===name);
+  buildCityGrid(); loadAll(); updateQibla();
+}
+
+// ─── LOAD ALL ───
+function loadAll(){
+  prayerTimes=calcPrayerTimes(selectedDate,selectedCity.lat,selectedCity.lon);
+  buildPrayerGrid();
+  buildWeeklyTable();
+  buildProhibitedGrid();
+  updateHeader(selectedDate);
+  updateStats();
+  updateCountdown();
+}
+
+// ─── HEADER ───
+function updateHeader(date){
+  document.getElementById('arabicDay').textContent=ARABIC_DAYS[date.getDay()];
+  document.getElementById('engDate').textContent=date.toLocaleDateString('en-BD',{
+    weekday:'long',year:'numeric',month:'long',day:'numeric'
+  });
+  const h=getHijri(date);
+  document.getElementById('hijriDate').textContent=h;
+  document.getElementById('hijriDateMob').textContent=h;
+}
+
+// ─── PRAYER GRID ───
+function buildPrayerGrid(){
+  const grid=document.getElementById('prayerGrid');
+  const now=new Date(), nowMin=now.getHours()*60+now.getMinutes();
+  const viewingToday=isToday(selectedDate);
+  const order=['Fajr','Dhuhr','Asr','Maghrib','Isha'];
+  let active=null; nextPrayer=null;
+  if(viewingToday){
+    for(let i=0;i<order.length;i++){
+      const t=parseTime12(prayerTimes[order[i]]);
+      if(nowMin<t){nextPrayer={name:order[i],min:t};break;}
+      active=order[i];
+    }
+    if(!nextPrayer)nextPrayer={name:'Fajr',min:parseTime12(prayerTimes['Fajr'])+1440};
+  }
+  grid.innerHTML=PRAYER_META.filter(p=>p.key!=='Sunrise').map(p=>{
+    const isActive=viewingToday&&p.key===active;
+    const isNext=viewingToday&&nextPrayer&&p.key===nextPrayer.name;
+    return `
+    <div class="prayer-card p-5 ${isActive?'active-prayer':''}" role="listitem"
+      style="${isActive?'border-color:var(--gold-light);background:var(--gold-pale);':''}"
+      aria-label="${p.key} prayer at ${prayerTimes[p.key]}">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <div class="text-3xl mb-1" aria-hidden="true">${p.icon}</div>
+          <div class="amiri text-base mb-0.5" style="color:var(--ink-dim)">${p.arabic}</div>
+          <div class="text-prayer-name">${p.key}</div>
+          <div class="text-xs mt-0.5" style="color:var(--ink-dim)">${p.desc||''}</div>
+        </div>
+        <div class="flex flex-col items-end gap-2">
+          ${isActive?`<span class="badge-current">Current</span>`:''}
+          ${isNext?`<span class="badge-next">Next</span>`:''}
+          <button class="adhan-btn ${muteState[p.key]?'muted':''}"
+            onclick="toggleMute('${p.key}',this)"
+            aria-label="${muteState[p.key]?'Unmute':'Mute'} ${p.key} alert"
+            title="${muteState[p.key]?'Unmute alert':'Mute alert'}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              ${muteState[p.key]
+                ?'<line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/>'
+                :'<path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>'}
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="text-prayer-time">${prayerTimes[p.key]}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleMute(prayer){
+  muteState[prayer]=!muteState[prayer];
+  buildPrayerGrid();
+}
+
+// ─── STATS ───
+function updateStats(){
+  document.getElementById('statSunrise').textContent=prayerTimes['Sunrise'];
+  document.getElementById('statSunset').textContent=prayerTimes['Maghrib'];
+  const rise=parseTime12(prayerTimes['Sunrise']), set=parseTime12(prayerTimes['Maghrib']);
+  const diff=set-rise;
+  document.getElementById('statDayLength').textContent=`${Math.floor(diff/60)}h ${diff%60}m`;
+}
+
+// ─── COUNTDOWN ───
+function updateCountdown(){
+  if(!isToday(selectedDate)){
+    document.getElementById('cdH').textContent='--';
+    document.getElementById('cdM').textContent='--';
+    document.getElementById('cdS').textContent='--';
+    document.getElementById('nextPrayerLabel').textContent='—';
+    document.getElementById('dayProgress').style.width='0%';
+    return;
+  }
+  const now=new Date(), nowMin=now.getHours()*60+now.getMinutes()+now.getSeconds()/60;
+  const order=['Fajr','Dhuhr','Asr','Maghrib','Isha'];
+  let found=null;
+  for(const p of order){
+    const t=parseTime12(prayerTimes[p]);
+    if(nowMin<t){found={name:p,min:t};break;}
+  }
+  if(!found)found={name:'Fajr',min:parseTime12(prayerTimes['Fajr'])+1440};
+
+  const diffSec=Math.max(0,Math.round((found.min-nowMin)*60));
+  const h=Math.floor(diffSec/3600), m=Math.floor((diffSec%3600)/60), s=diffSec%60;
+  document.getElementById('cdH').textContent=String(h).padStart(2,'0');
+  document.getElementById('cdM').textContent=String(m).padStart(2,'0');
+  document.getElementById('cdS').textContent=String(s).padStart(2,'0');
+  document.getElementById('nextPrayerLabel').textContent=found.name;
+
+  const fajr=parseTime12(prayerTimes['Fajr']), isha=parseTime12(prayerTimes['Isha']);
+  const pct=Math.min(100,Math.max(0,(nowMin-fajr)/(isha-fajr)*100));
+  document.getElementById('dayProgress').style.width=pct+'%';
+
+  const nowM=now.getHours()*60+now.getMinutes();
+  for(const p of order){
+    const t=parseTime12(prayerTimes[p]);
+    if(nowM===t&&now.getSeconds()<5&&!muteState[p]){
+      showNotif(`🕌 ${p} time has begun — ${prayerTimes[p]}`);
+    }
+  }
+  if(now.getSeconds()<2)buildProhibitedGrid();
+}
+
+function showNotif(msg){
+  const b=document.getElementById('notifBanner');
+  document.getElementById('notifText').textContent=msg;
+  b.classList.remove('hidden');
+  setTimeout(()=>b.classList.add('hidden'),8000);
+}
+
+// ─── MADHAB ───
+function switchMadhab(id, btn){
+  selectedMadhab=id;
+  document.querySelectorAll('.madhab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('madhabNoteText').innerHTML=MADHAB_DATA[id].note;
+  buildProhibitedGrid();
+}
+
+// ─── PROHIBITED TIMES ───
+function fmtMinutes(m){
+  m=((m%1440)+1440)%1440;
+  const h=Math.floor(m/60),mn=m%60,ap=h<12?'AM':'PM',h12=h%12||12;
+  return `${h12}:${String(mn).padStart(2,'0')} ${ap}`;
+}
+
+function buildProhibitedGrid(){
+  const grid=document.getElementById('prohibitedGrid');
+  const now=new Date(), nowM=now.getHours()*60+now.getMinutes();
+  const madhab=MADHAB_DATA[selectedMadhab];
+  const zones=madhab.windows.map(w=>{
+    const anchor=parseTime12(prayerTimes[w.label]);
+    return {...w, start:anchor+(-w.windowBefore||0), end:anchor+(w.windowAfter||0)};
+  });
+  grid.innerHTML=zones.map(z=>{
+    const isNow=nowM>=z.start&&nowM<z.end;
+    return `
+    <div class="prohibited-card ${isNow?'active-prohibited':''}" role="listitem"
+      aria-label="${z.name}${isNow?' — currently in effect':''}">
+      <div class="flex items-start justify-between mb-3">
+        <span class="text-2xl" aria-hidden="true">${z.icon}</span>
+        ${isNow?`<span class="badge-now">🚫 Now</span>`:`<span class="badge-forbidden">Forbidden</span>`}
+      </div>
+      <div class="amiri text-base mb-1" style="color:var(--red-dark)">${z.arabic}</div>
+      <div class="lora text-base font-semibold mb-1" style="color:var(--ink)">${z.name}</div>
+      <div class="lora text-lg font-bold mb-2" style="color:var(--red-dark)">
+        ${fmtMinutes(z.start)} – ${fmtMinutes(z.end)}
+      </div>
+      <p class="text-sm leading-relaxed" style="color:var(--ink-mid)">${z.desc}</p>
+    </div>`;
+  }).join('');
+}
+
+// ─── WEEKLY TABLE ───
+function buildWeeklyTable(){
+  const body=document.getElementById('weeklyBody');
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const today=new Date();
+  let rows='';
+  for(let i=0;i<7;i++){
+    const d=new Date(selectedDate); d.setDate(selectedDate.getDate()+i);
+    const pt=calcPrayerTimes(d,selectedCity.lat,selectedCity.lon);
+    const isSel=i===0;
+    const isRT=d.getFullYear()===today.getFullYear()&&d.getMonth()===today.getMonth()&&d.getDate()===today.getDate();
+    const isFri=d.getDay()===5;
+    rows+=`<tr class="weekly-row ${isSel?'selected':''}" ${isSel?'aria-current="date"':''}>
+      <td class="py-3 pr-4">
+        <span class="lora text-sm font-semibold ${isFri?'':''}${isRT?' text-teal-600':''}" style="${isFri?'color:var(--gold);font-weight:700;':''}">${days[d.getDay()]}</span>
+        <span class="block text-xs" style="color:var(--ink-dim)">${d.getDate()}${isRT?' <span style="color:var(--gold);font-size:0.5rem">●</span>':''}</span>
+      </td>
+      ${['Fajr','Dhuhr','Asr','Maghrib','Isha'].map(p=>`
+        <td class="py-3 px-2 text-center text-sm ${isSel?'font-bold':'font-normal'}" style="${isSel?'color:var(--gold);':''}">${pt[p]}</td>
+      `).join('')}
+    </tr>`;
+  }
+  body.innerHTML=rows;
+}
+
+// ─── QIBLA ───
+function updateQibla(){
+  const q=selectedCity.qibla;
+  document.getElementById('qiblaAngle').textContent=q+'°';
+  document.getElementById('qiblaCity').textContent=`from ${selectedCity.name}`;
+  document.getElementById('qiblaNeedle').style.transform=`translate(-50%,-100%) rotate(${q}deg)`;
+  document.getElementById('qiblaGrid').innerHTML=CITIES.map(c=>`
+    <div class="qibla-city-card ${c.name===selectedCity.name?'active':''}" onclick="selectCity('${c.name}')"
+      role="button" tabindex="0" aria-label="${c.name} qibla ${c.qibla} degrees">
+      <div class="text-xs mb-1" style="color:var(--ink-dim)">${c.name}</div>
+      <div class="lora text-base font-bold" style="color:var(--gold)">${c.qibla}°</div>
+    </div>
+  `).join('');
+}
+
+// ─── TABS ───
+function switchTab(tab, btn){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el=>{el.classList.remove('active');el.setAttribute('aria-selected','false');});
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+}
+function switchTabMob(tab, btn){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.mob-nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ─── FADE IN ───
+function animateIn(){
+  document.querySelectorAll('.fade-up').forEach((el,i)=>{
+    el.style.transition=`opacity 0.55s ease ${i*0.1}s, transform 0.55s ease ${i*0.1}s`;
+    setTimeout(()=>{el.style.opacity='1';el.style.transform='translateY(0)';},30);
+  });
+}
+
+// ─── INIT ───
+window.addEventListener('load',()=>{
+  selectedDate=new Date();
+  const dp=document.getElementById('datePicker');
+  if(dp)dp.value=toDateInputVal(selectedDate);
+  buildCityGrid();
+  loadAll();
+  updateQibla();
+  animateIn();
+  setInterval(()=>{ if(isToday(selectedDate))updateCountdown(); },1000);
+});
+</script>
+</body>
+</html>
