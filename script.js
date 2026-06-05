@@ -1,4 +1,4 @@
-// ─── DATA ───
+// ─── GEOGRAPHIC DATA ───
 const CITIES = [
   { name:'Dhaka',      lat:23.8103, lon:90.4125, qibla:277.5 },
   { name:'Chittagong', lat:22.3569, lon:91.7832, qibla:276.8 },
@@ -24,7 +24,7 @@ const PRAYER_META = [
 
 const ARABIC_DAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 
-// ─── MADHAB DATA (accurate per fiqh) ───
+// ─── MADHAB SPECIFIC DATA (FOR PROHIBITED TIMES) ───
 const MADHAB_DATA = {
   hanafi: {
     note: '<strong style="color:var(--gold)">Ḥanafī:</strong> All voluntary (nafl) and makeup (qaḍā) prayers strictly prohibited. Fard with a cause (janāzah, sajdah) permitted except at istiwa\'. Category: <em>Makrūh Taḥrīmān</em>.',
@@ -67,7 +67,11 @@ let muteState      = {};
 let selectedDate   = new Date();
 let selectedMadhab = 'hanafi';
 
-// ─── CALC ENGINE ───
+// ─── COMPASS LIVE STATE ───
+let isLiveCompassActive = false;
+let lastVibrationTime = 0;
+
+// ─── ASTRONOMICAL MATHEMATICAL CALCULATION ENGINE ───
 const DEG = Math.PI/180, RAD = 180/Math.PI;
 
 function calcPrayerTimes(date, lat, lon){
@@ -128,12 +132,12 @@ function parseTime12(t){
   return h*60+m;
 }
 
-// ─── HIJRI ───
+// ─── HIJRI DATE CALENDAR ───
 function getHijri(date){
   return new Intl.DateTimeFormat('en-u-ca-islamic',{day:'numeric',month:'long',year:'numeric'}).format(date);
 }
 
-// ─── DATE HELPERS ───
+// ─── SYSTEM DATE CONTROLLERS ───
 function isToday(d){
   const t=new Date();
   return d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate();
@@ -159,7 +163,7 @@ function updateViewingLabel(){
     `Viewing ${selectedDate.toLocaleDateString('en-BD',{day:'numeric',month:'short',year:'numeric'})}`;
 }
 
-// ─── CITY GRID ───
+// ─── CITY GRID MANAGER ───
 function buildCityGrid(){
   document.getElementById('cityGrid').innerHTML=CITIES.map(c=>`
     <button class="city-btn ${c.name===selectedCity.name?'active':''}"
@@ -172,7 +176,7 @@ function selectCity(name){
   buildCityGrid(); loadAll(); updateQibla();
 }
 
-// ─── LOAD ALL ───
+// ─── MASTER STATE LOAD ───
 function loadAll(){
   prayerTimes=calcPrayerTimes(selectedDate,selectedCity.lat,selectedCity.lon);
   buildPrayerGrid();
@@ -183,7 +187,7 @@ function loadAll(){
   updateCountdown();
 }
 
-// ─── HEADER ───
+// ─── DISPLAY HEADINGS ───
 function updateHeader(date){
   document.getElementById('arabicDay').textContent=ARABIC_DAYS[date.getDay()];
   document.getElementById('engDate').textContent=date.toLocaleDateString('en-BD',{
@@ -194,7 +198,7 @@ function updateHeader(date){
   document.getElementById('hijriDateMob').textContent=h;
 }
 
-// ─── PRAYER GRID ───
+// ─── PRAYER GRID BUILDER ───
 function buildPrayerGrid(){
   const grid=document.getElementById('prayerGrid');
   const now=new Date(), nowMin=now.getHours()*60+now.getMinutes();
@@ -248,7 +252,7 @@ function toggleMute(prayer){
   buildPrayerGrid();
 }
 
-// ─── STATS ───
+// ─── DAILY ASTRONOMY STATISTICS ───
 function updateStats(){
   document.getElementById('statSunrise').textContent=prayerTimes['Sunrise'];
   document.getElementById('statSunset').textContent=prayerTimes['Maghrib'];
@@ -257,7 +261,7 @@ function updateStats(){
   document.getElementById('statDayLength').textContent=`${Math.floor(diff/60)}h ${diff%60}m`;
 }
 
-// ─── COUNTDOWN ───
+// ─── REALTIME APP TIMER ENGINE ───
 function updateCountdown(){
   if(!isToday(selectedDate)){
     document.getElementById('cdH').textContent='--';
@@ -304,7 +308,7 @@ function showNotif(msg){
   setTimeout(()=>b.classList.add('hidden'),8000);
 }
 
-// ─── MADHAB ───
+// ─── MADHAB SELECTOR ───
 function switchMadhab(id, btn){
   selectedMadhab=id;
   document.querySelectorAll('.madhab-btn').forEach(b=>b.classList.remove('active'));
@@ -313,7 +317,7 @@ function switchMadhab(id, btn){
   buildProhibitedGrid();
 }
 
-// ─── PROHIBITED TIMES ───
+// ─── PROHIBITED WINDOW CALCULATION ───
 function fmtMinutes(m){
   m=((m%1440)+1440)%1440;
   const h=Math.floor(m/60),mn=m%60,ap=h<12?'AM':'PM',h12=h%12||12;
@@ -347,7 +351,7 @@ function buildProhibitedGrid(){
   }).join('');
 }
 
-// ─── WEEKLY TABLE ───
+// ─── WEEKLY TIMETABLE GENERATION ───
 function buildWeeklyTable(){
   const body=document.getElementById('weeklyBody');
   const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -361,7 +365,7 @@ function buildWeeklyTable(){
     const isFri=d.getDay()===5;
     rows+=`<tr class="weekly-row ${isSel?'selected':''}" ${isSel?'aria-current="date"':''}>
       <td class="py-3 pr-4">
-        <span class="lora text-sm font-semibold ${isFri?'':''}${isRT?' text-teal-600':''}" style="${isFri?'color:var(--gold);font-weight:700;':''}">${days[d.getDay()]}</span>
+        <span class="lora text-sm font-semibold ${isRT?' text-teal-600':''}" style="${isFri?'color:var(--gold);font-weight:700;':''}">${days[d.getDay()]}</span>
         <span class="block text-xs" style="color:var(--ink-dim)">${d.getDate()}${isRT?' <span style="color:var(--gold);font-size:0.5rem">●</span>':''}</span>
       </td>
       ${['Fajr','Dhuhr','Asr','Maghrib','Isha'].map(p=>`
@@ -372,14 +376,21 @@ function buildWeeklyTable(){
   body.innerHTML=rows;
 }
 
-// ─── QIBLA ───
+// ─── QIBLA SYSTEM ───
 function updateQibla(){
-  const q=selectedCity.qibla;
-  document.getElementById('qiblaAngle').textContent=q+'°';
-  document.getElementById('qiblaCity').textContent=`from ${selectedCity.name}`;
-  document.getElementById('qiblaNeedle').style.transform=`translate(-50%,-100%) rotate(${q}deg)`;
-  document.getElementById('qiblaGrid').innerHTML=CITIES.map(c=>`
-    <div class="qibla-city-card ${c.name===selectedCity.name?'active':''}" onclick="selectCity('${c.name}')"
+  const q = selectedCity.qibla;
+  document.getElementById('qiblaAngle').textContent = q + '°';
+  document.getElementById('qiblaCity').textContent = `from ${selectedCity.name}`;
+  
+  if (!isLiveCompassActive) {
+    document.getElementById('compassRing').style.transform = `rotate(0deg)`;
+    document.getElementById('qiblaNeedle').style.transform = `translate(-50%,-100%) rotate(${q}deg)`;
+  } else {
+    document.getElementById('qiblaNeedle').style.transform = `translate(-50%,-100%) rotate(${q}deg)`;
+  }
+
+  document.getElementById('qiblaGrid').innerHTML = CITIES.map(c=>`
+    <div class="qibla-city-card ${c.name === selectedCity.name ? 'active' : ''}" onclick="selectCity('${c.name}')"
       role="button" tabindex="0" aria-label="${c.name} qibla ${c.qibla} degrees">
       <div class="text-xs mb-1" style="color:var(--ink-dim)">${c.name}</div>
       <div class="lora text-base font-bold" style="color:var(--gold)">${c.qibla}°</div>
@@ -387,7 +398,148 @@ function updateQibla(){
   `).join('');
 }
 
-// ─── TABS ───
+// ─── SMARTPHONE HARDWARE GYROSCOPE/MAGNETOMETER INTEGRATION ───
+function initMobileCompass() {
+  if (isLiveCompassActive) {
+    stopCompass();
+    return;
+  }
+
+  // Request hardware orientation access (iOS 13+ Safari compatibility)
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission()
+      .then(permissionState => {
+        if (permissionState === 'granted') {
+          startCompass();
+        } else {
+          showNotif("⚠️ Sensor access was denied. Please allow motion sensors.");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        showNotif("⚠️ Compass error. Keep device within browser window.");
+      });
+  } else {
+    // Android/Non-iOS compatible browser
+    startCompass();
+  }
+}
+
+function startCompass() {
+  const btn = document.getElementById('activateCompassBtn');
+  const liveDot = document.getElementById('qiblaLiveDot');
+  const statusText = document.getElementById('qiblaStatusText');
+  const guidanceBanner = document.getElementById('qiblaGuidanceBanner');
+
+  isLiveCompassActive = true;
+  btn.textContent = "🛑 Stop Live Compass";
+  btn.style.background = "var(--red-dark)";
+  
+  if (liveDot) {
+    liveDot.className = "w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse";
+  }
+  if (statusText) statusText.textContent = "Live Compass Mode Active";
+  if (guidanceBanner) {
+    guidanceBanner.style.background = "var(--teal-light)";
+    guidanceBanner.style.borderColor = "rgba(26,107,124,0.3)";
+  }
+
+  // Bind precise device absolute coordinates
+  if ('ondeviceorientationabsolute' in window) {
+    window.addEventListener('deviceorientationabsolute', handleCompassEvent, true);
+  } else if ('ondeviceorientation' in window) {
+    window.addEventListener('deviceorientation', handleCompassEvent, true);
+  } else {
+    showNotif("⚠️ Device orientation hardware is not supported.");
+    stopCompass();
+  }
+}
+
+function stopCompass() {
+  const btn = document.getElementById('activateCompassBtn');
+  const liveDot = document.getElementById('qiblaLiveDot');
+  const statusText = document.getElementById('qiblaStatusText');
+  const guidanceBanner = document.getElementById('qiblaGuidanceBanner');
+  const ring = document.getElementById('compassRing');
+  const instruction = document.getElementById('qiblaInstruction');
+
+  isLiveCompassActive = false;
+  btn.textContent = "🎯 Enable Live Mobile Compass";
+  btn.style.background = "var(--teal)";
+  
+  if (liveDot) {
+    liveDot.className = "w-3.5 h-3.5 rounded-full bg-orange-400";
+  }
+  if (statusText) statusText.textContent = "Static Compass Mode";
+  if (instruction) instruction.textContent = "Place phone flat. Rotate until the Kaaba points straight up.";
+  if (guidanceBanner) {
+    guidanceBanner.style.background = "var(--cream-deep)";
+    guidanceBanner.style.borderColor = "var(--border)";
+  }
+  if (ring) {
+    ring.classList.remove('aligned');
+    ring.style.transform = `rotate(0deg)`;
+  }
+
+  window.removeEventListener('deviceorientationabsolute', handleCompassEvent, true);
+  window.removeEventListener('deviceorientation', handleCompassEvent, true);
+  updateQibla();
+}
+
+function handleCompassEvent(e) {
+  if (!isLiveCompassActive) return;
+
+  let heading = null;
+
+  // iOS Safari native compass bearing
+  if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
+    heading = e.webkitCompassHeading;
+  } 
+  // Android / Chrome fallback using alpha coordinate
+  else if (e.alpha !== null && e.alpha !== undefined) {
+    heading = (360 - e.alpha) % 360;
+  }
+
+  if (heading === null) return;
+
+  const ring = document.getElementById('compassRing');
+  const instruction = document.getElementById('qiblaInstruction');
+  const statusText = document.getElementById('qiblaStatusText');
+  const targetAngle = selectedCity.qibla;
+
+  // Rotate compass ring to adjust to geographic North
+  ring.style.transform = `rotate(${-heading}deg)`;
+
+  // Measure delta between direct phone orientation heading and Mecca vector
+  let diff = (targetAngle - heading + 540) % 360 - 180;
+  let absDiff = Math.abs(diff);
+
+  statusText.textContent = `Live Heading: ${Math.round(heading)}°`;
+
+  if (absDiff < 4) {
+    // Aligned status
+    ring.classList.add('aligned');
+    instruction.innerHTML = `<span style="color:#10b981; font-weight: 700;">🕋 Aligned with Mecca! Pray this direction.</span>`;
+    
+    // Throttled haptic pulse vibration feedback
+    const now = Date.now();
+    if (now - lastVibrationTime > 600) {
+      if (navigator.vibrate) {
+        navigator.vibrate(60);
+      }
+      lastVibrationTime = now;
+    }
+  } else {
+    ring.classList.remove('aligned');
+    if (diff > 0) {
+      instruction.textContent = `Turn Right by ${Math.round(absDiff)}° ⟳`;
+    } else {
+      instruction.textContent = `Turn Left by ${Math.round(absDiff)}° ⟲`;
+    }
+  }
+}
+
+// ─── TABS NAVIGATIONAL TACTILITY ───
 function switchTab(tab, btn){
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el=>{el.classList.remove('active');el.setAttribute('aria-selected','false');});
@@ -401,7 +553,7 @@ function switchTabMob(tab, btn){
   btn.classList.add('active');
 }
 
-// ─── FADE IN ───
+// ─── FADE IN ANIMATIONS ───
 function animateIn(){
   document.querySelectorAll('.fade-up').forEach((el,i)=>{
     el.style.transition=`opacity 0.55s ease ${i*0.1}s, transform 0.55s ease ${i*0.1}s`;
@@ -409,7 +561,7 @@ function animateIn(){
   });
 }
 
-// ─── INIT ───
+// ─── INITIALIZATION ───
 window.addEventListener('load',()=>{
   selectedDate=new Date();
   const dp=document.getElementById('datePicker');
